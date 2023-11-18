@@ -1,0 +1,15 @@
+SIOC/SCL - 22
+SIOD/SDA - 21
+VSYNC/VS - 34
+HREF/HF - 35
+PCLK - 33
+XCLK - 32
+D7 - 4
+D6 - 12
+D5 - 13
+D4 - 14
+D3 - 15
+D2 - 16
+D1 - 17
+D0 - 27
+PWDN - N

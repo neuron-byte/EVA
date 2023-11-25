@@ -1,12 +1,23 @@
 #include <WiFi.h>
-#include <WiFiUdp.h>
 #include "OV7670.h"
 #include "BMP.h"
 #include "ov7670_wire.h"
 #include "wifi_conf.h"
+#include "Zinu.h"
+#include "actions_enum.h"
+
+
+//#define EN_M1
+//#define EN_M2
+//#define DIRECTION_M1_A
+//#define DIRECTION_M1_B
+//#define DIRECTION_M2_A
+//#define DIRECTION_M2_B
 
 OV7670 *camera;
-WiFiUDP udp;
+Zinu *zinu;
+PROGMEM uint8_t grayscaleBuffer[19200];
+const size_t sizeGrayScaleBuffer = sizeof(grayscaleBuffer);
 
 void setup()
 {
@@ -19,45 +30,46 @@ void setup()
         delay(800);
     }
     Serial.println("Conectado ao Wifi");
-
-    while (!udp.begin(UDP_PORT))
+    zinu = new Zinu();
+    while (!zinu->handShake())
     {
-        Serial.println("Erro ao iniciar servidor UDP");
-        Serial.println("Tentando iniciar servidor UDP...");
+        Serial.println("Unidade EVA ainda não conectada a MAGI");
         delay(50);
     }
-    Serial.println("Servidor UDP iniciado");
-    delay(500);
+    
     camera = new OV7670(OV7670::Mode::QQVGA_RGB565, SIOD, SIOC, VSYNC, HREF, XCLK, PCLK, D0, D1, D2, D3, D4, D5, D6, D7);
     Serial.println("Unidade 0 Evangelion iniciada");
     Serial.print("IP da unidade EVA 0: ");
     Serial.println(WiFi.localIP());
 }
 
-float convert_to_grayscale()
-{
-}
+void takeFrame(){}
+void turnRight(){}
+void turnLeft(){}
+void moveFoward(){}
+void moveBackward(){}
 
-void loop()
-{
-    if (udp.parsePacket())
-    {
-        Serial.println("Recebi algo!");
-        byte bf[1];
-        int len = udp.read(bf, sizeof(bf));
-        if (bf[0] == 0)
-        {
-            uint8_t num = 1;
-            udp.beginPacket(udp.remoteIP(), udp.remotePort());
-            udp.write(&num, sizeof(num));
-            udp.endPacket();
-        }
-    }
-    /*
+void loop(){
     camera->oneFrame();
-    unsigned char *currentFrame = camera->frame;
-    int i = 0;
-    byte n = ping(0);
-    Serial.printf("R: %i", n);
-    delay(1000);*/
+    byte signal = zinu->listener(grayscaleBuffer,sizeGrayScaleBuffer); //120x160x1(1byte = uint8_t)
+    switch (signal)
+    {
+    case MOVE_FORWARD:
+        moveFoward();
+        break;
+    case MOVE_BACKWARD:
+        moveBackward();
+        break;
+    case MOVE_LEFT:
+        turnLeft();
+        break;
+    case MOVE_RIGHT:
+        turnRight();
+        break;
+    case TAKE_FRAME:
+        takeFrame();
+        break;
+    default:
+        break;
+    }  
 }

@@ -25,7 +25,7 @@ def ping(signal,expected_response_len):
         exit()
 
 if __name__ == "__main__":
-    EVA_CON = ("192.168.0.101",12345)
+    EVA_CON = ("192.168.0.104",12345)
     ESP_MAX_BYTES = 1460
     SOCK_UDP = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     SOCK_UDP.settimeout(1)

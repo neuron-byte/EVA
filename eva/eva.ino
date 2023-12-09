@@ -30,28 +30,40 @@ void setup()
         delay(800);
     }
     Serial.println("Conectado ao Wifi");
+    Serial.print("IP da unidade EVA 0: ");
+    Serial.println(WiFi.localIP());
     zinu = new Zinu();
     while (!zinu->handShake())
     {
         Serial.println("Unidade EVA ainda não conectada a MAGI");
-        delay(50);
+        delay(500);
     }
     
     camera = new OV7670(OV7670::Mode::QQVGA_RGB565, SIOD, SIOC, VSYNC, HREF, XCLK, PCLK, D0, D1, D2, D3, D4, D5, D6, D7);
     Serial.println("Unidade 0 Evangelion iniciada");
-    Serial.print("IP da unidade EVA 0: ");
-    Serial.println(WiFi.localIP());
 }
 
-void takeFrame(){}
+//Pega um frame da camera
+void takeFrame(){
+    camera->oneFrame();
+    convertToGrayscale();
+}
+//Converte para grayscale
+void convertToGrayscale(){
+    unsigned char* frameToConvert = camera->frame;
+}
+//Faz o EVA virar a direita
 void turnRight(){}
+//Faz o EVA virar a esquerda
 void turnLeft(){}
+//Faz o EVA ir a frente
 void moveFoward(){}
+//Faz o EVA dar ré
 void moveBackward(){}
 
 void loop(){
     camera->oneFrame();
-    byte signal = zinu->listener(grayscaleBuffer,sizeGrayScaleBuffer); //120x160x1(1byte = uint8_t)
+    byte signal = zinu->listener(camera->frame,camera->frameBytes); //120x160x1(1byte = uint8_t)
     switch (signal)
     {
     case MOVE_FORWARD:
@@ -71,5 +83,5 @@ void loop(){
         break;
     default:
         break;
-    }  
+    }
 }

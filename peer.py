@@ -28,7 +28,7 @@ if __name__ == "__main__":
     EVA_CON = ("192.168.0.104",12345)
     ESP_MAX_BYTES = 1460
     SOCK_UDP = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    SOCK_UDP.settimeout(1)
+    SOCK_UDP.settimeout(1000)
     lost_packages = 0
     num_packages = 0
     receving_frame = False
@@ -47,10 +47,13 @@ if __name__ == "__main__":
             receving_frame = True
         
         for _ in range(num_packages):
+            print(_)
             eva_response = ping(2,ESP_MAX_BYTES)
+            
             if not eva_response:
                 frame = []
                 break
             frame.append(eva_response[0])
-        
+
+        receving_frame = False
         #converter frame para algum formato?

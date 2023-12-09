@@ -50,11 +50,15 @@ void Zinu::dataResponse_8bits(uint8_t* bufferData)
 {   
     int base = 0;
     int head = MAX_BYTES_UDP-1;
-    for(int packageNumber; packageNumber< this->num_packages;packageNumber++){
+    byte* signal;
+    for(int packageNumber = 0; packageNumber< this->num_packages;packageNumber++){
         base += MAX_BYTES_UDP;
         head += MAX_BYTES_UDP;
-        uint8_t localbuffer[1460];        
-        byte *signal = this->readSignal();
+        uint8_t localbuffer[1460];   
+        this->socket.beginPacket(this->socket.remoteIP(), this->socket.remotePort());
+        this->socket.write(localbuffer, sizeof(localbuffer));
+        this->socket.endPacket();
+        signal = this->readSignal();
         if(*signal == 1){
             this->signalResponse(-2); //received a wrong sinal : dataResponse error
             break;
@@ -75,29 +79,37 @@ byte Zinu::handShake()
         return 1;
     }
 
+    if(*signal == 4)
+    {
+       return 0; 
+    }
+
     this->signalResponse(-1); // received a wrong signal : handshake error
     return 0;
 }
 
 void Zinu::countingPackages(size_t numBytes)
-{
-    byte remainder = numBytes % MAX_BYTES_UDP;
-    if (remainder == 0)
+{   
+    Serial.printf("%i\n", numBytes);
+    if (numBytes % MAX_BYTES_UDP == 0 || (numBytes/MAX_BYTES_UDP) < 1)
     {
         num_packages = 1;
         return;
     };
-    num_packages = (numBytes / MAX_BYTES_UDP) + remainder;
+    num_packages = (numBytes / MAX_BYTES_UDP) + 1;
+    Serial.printf("%i\n", num_packages);
 }
 
 byte* Zinu::readSignal()
 {
-    if (this->socket.parsePacket())
+    byte* buffer = new byte[1];
+    if (this->socket.parsePacket()>0)
     {
-        byte* buffer = new byte[1];
         this->socket.read(buffer, sizeof(buffer));
         return buffer;
     }
+    buffer[0] = 4;
+    return buffer;
 }   
 
 

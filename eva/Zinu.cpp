@@ -59,13 +59,10 @@ void Zinu::dataResponse_8bits(uint8_t* bufferData)
         this->socket.write(localbuffer, sizeof(localbuffer));
         this->socket.endPacket();
         signal = this->readSignal();
-        if(*signal == 1){
-            this->signalResponse(-2); //received a wrong sinal : dataResponse error
-            break;
-        }
-
         if(*signal == 3){
             //RESET
+            Serial.println("Reset");
+            break;
         }
     }
 }

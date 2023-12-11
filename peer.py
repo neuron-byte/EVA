@@ -33,7 +33,7 @@ if __name__ == "__main__":
     num_packages = 0
     receving_frame = False
     sucess_connection = False
-    frame = []
+    frame_bytes = b''
     ping(0,1)
     print("Conexão com EVA estabelecida")
     sucess_connection = True
@@ -46,14 +46,16 @@ if __name__ == "__main__":
             num_packages = int.from_bytes(eva_response[0], byteorder="little")
             receving_frame = True
         
-        for _ in range(num_packages):
-            print(_)
+        for counter in range(num_packages):
+            print(f"{counter+1}/{num_packages}")
             eva_response = ping(2,ESP_MAX_BYTES)
-            
             if not eva_response:
-                frame = []
+                frame_bytes = b''
                 break
-            frame.append(eva_response[0])
+            
+            frame_bytes += eva_response[0]
 
         receving_frame = False
-        #converter frame para algum formato?
+        #multithread para receber proximo buffer ao mesmo tempo que processa o anterior
+        ping(3,1)
+        

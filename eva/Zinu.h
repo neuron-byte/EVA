@@ -9,6 +9,7 @@ public:
 private:
     WiFiUDP socket;
     int num_packages;
+    int last_package_bytes;
     void signalResponse(byte signal);
     void dataResponse_8bits(uint8_t* bufferData);
     void countingPackages(size_t numBytes);

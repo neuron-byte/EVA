@@ -67,6 +67,8 @@ void Zinu::dataResponse_8bits(uint8_t* bufferData)
         this->socket.endPacket();
         packageCounter++;
         signal = this->readSignal();
+        Serial.print("Signal: ");
+        Serial.println(*signal);
     }while(*signal == 2 && (packageCounter<=this->num_packages));
     switch (*signal)
     {
@@ -133,5 +135,3 @@ byte* Zinu::readSignal()
     }
     return buffer;
 }   
-
-

@@ -11,9 +11,9 @@ Zinu::Zinu(int port)
 }
 
 //8bits like
-byte Zinu::checkIncomingSignal() {
-    byte *incommingSignal = this->readIncomingSignal(); 
-    switch (*incommingSignal) {
+void Zinu::checkIncomingSignal() {
+    this->readIncomingSignal();
+    switch (*this->signalbuffer) {
         case SEND_DATA_REQUEST:
             this->state = SENDING_DATA;
             break;
@@ -31,56 +31,71 @@ void Zinu::sendResponseSignal(byte signal)
 }
 
 //8bits like
-void Zinu::sendResponseData(uint8_t* bufferData)
+void Zinu::sendData(uint8_t* bufferData)
 {   
     // int base = 0;
     // int head = MAX_BYTES_UDP-1;
-    // for(int packageNumber; packageNumber< this->num_packages;packageNumber++){
-    //     base += MAX_BYTES_UDP;
-    //     head += MAX_BYTES_UDP;
-    //     uint8_t localbuffer[1460];        
-    //     byte *signal = this->readSignal();
-    //     if(*signal == 1){
-    //         this->sendResponseSignal(-2); //received a wrong sinal : dataResponse error
-    //         break;
-    //     }
-
-    //     if(*signal == 3){
-    //         //RESET
-    //     }
+    // int packageCounter = 1;
+    // byte* signal;
+    
+    // do{
+    //     base+= MAX_BYTES_UDP;
+    //     head+= MAX_BYTES_UDP;
+    //     int bufferSize = packageCounter==this->num_packages ? this->last_package_bytes : MAX_BYTES_UDP;
+    //     uint8_t localbuffer[bufferSize];
+    //     this->socket.beginPacket(this->socket.remoteIP(), this->socket.remotePort());
+    //     this->socket.write(localbuffer, sizeof(localbuffer));
+    //     this->socket.endPacket();
+    //     packageCounter++;
+    //     signal = this->readSignal();
+    //     Serial.print("Signal: ");
+    //     Serial.println(*signal);
+    // }while(*signal == 2 && (packageCounter<=this->num_packages));
+    // switch (*signal)
+    // {
+    // case 3:
+    //     Serial.println("Reseting");
+    //     this->signalResponse(1);
+    //     break;
+    // case 2:
+    //     Serial.println("Sended!");
+    //     this->signalResponse(1);
+    //     break;
+    // default:
+    //     Serial.println("Wrong Signal");
+    //     this->signalResponse(0);
+    //     break;
     // }
+    // this->num_packages = 0;
 }
 
 bool Zinu::handShake()
 { 
-    byte *incommingSignal = this->readIncomingSignal();
-    if (*incommingSignal == HANDSHAKE) {
+    this->readIncomingSignal();
+    if (this->signalbuffer[0] == HANDSHAKE) {
         this->sendResponseSignal(HANDSHAKE); // successful connection
         this->connected = true;
-        return true;
+        return this->connected;
     }
     return false;
 }
 
-void Zinu::countPackets(size_t numBytes)
-{
-    // byte remainder = numBytes % MAX_BYTES_UDP;
-    // if (remainder == 0)
-    // {
-    //     num_packages = 1;
-    //     return;
-    // };
-    // num_packages = (numBytes / MAX_BYTES_UDP) + remainder;
+void Zinu::countPackets(size_t numBytes) {
+    Serial.printf("%i\n", numBytes);
+    if (numBytes % MAX_DATA_SIZE == 0 || (numBytes/MAX_DATA_SIZE) < 1)
+    {
+        this->num_packages = 1;
+        this->last_package_bytes = 0;
+        return;
+    };
+    this->num_packages = (numBytes / MAX_DATA_SIZE) + 1;
+    this->last_package_bytes = numBytes % MAX_DATA_SIZE;
+    Serial.printf("%i\n", num_packages);
 }
 
-byte* Zinu::readIncomingSignal()
-{
-    // Em algum momento isso aqui vai dar memory leak
-    // Porque?
-    byte* buffer = new byte[1];
-    buffer[0] = -1;
-    this->socket.read(buffer, sizeof(buffer));
-    Serial.println(*buffer);
-    return buffer;
-}   
-
+void Zinu::readIncomingSignal() {
+    this->signalbuffer[0] = 0;
+    if (this->socket.parsePacket()) {
+        this->socket.read(this->signalbuffer, sizeof(this->signalbuffer));
+    }
+} 

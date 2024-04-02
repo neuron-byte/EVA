@@ -39,7 +39,7 @@ void wifi_ap_setup() {
 
 void blink_led(int pin) {
   digitalWrite(pin, HIGH);
-  delay(100);
+  delay(50);
   digitalWrite(pin, LOW);
 }
 
@@ -64,11 +64,14 @@ void loop() {
   zinu->checkIncomingSignal();
 
   switch (zinu->state) {
-    case SENDING_DATA:
+    case DATA_REQUEST:
       blink_led(LED_BUILTIN);
       camera->oneFrame();
-      Serial.print("Frame size: ");
-      Serial.println(camera->xres * camera->yres * 2);
+      zinu->state = SENDING_DATA;
+      break;
+    case SENDING_DATA:
+      blink_led(LED_BUILTIN);
+      zinu->sendData(camera->frame, (camera->xres * camera->yres * 2));
       zinu->state = STAND_BY;
       break;
     case RESETING:

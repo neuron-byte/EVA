@@ -1,7 +1,7 @@
 #include <WiFiUdp.h>
 
-#ifndef DATA_SIZE
-#define DATA_SIZE
+#ifndef DATAPACK_SIZE
+#define DATAPACK_SIZE
 #define MAX_BYTES_UDP 1460
 #endif
 
@@ -13,6 +13,7 @@ const int RESETING = 3;
 const int STAND_BY = 4;
 
 // Ping signals
+const int NO_PING = 0;
 const int HANDSHAKE = 1;
 const int SEND_DATA_REQUEST = 2;
 const int RECEIVING_DATA = 3;
@@ -22,6 +23,7 @@ class Zinu {
     public:
         int state;
         bool connected = false;
+
         Zinu(int port);
         bool handShake();
         void checkIncomingSignal();

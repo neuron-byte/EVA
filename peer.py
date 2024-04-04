@@ -2,6 +2,7 @@ import socket
 import errno
 
 ESP_MAX_BYTES = 1460
+
 HANDSHAKE:int = 1
 DATA_REQUEST:int = 2
 RECEIVING_DATA:int = 3
@@ -25,10 +26,10 @@ class eva_connection:
         if self.sucess_connection == True: return
 
         self.sucess_connection = True if self.ping(HANDSHAKE) else False
-        self.SOCK_UDP.settimeout(2)
+        self.SOCK_UDP.settimeout(2.5)
         return self.sucess_connection
     
-    def ping(self, signal:int, expected_response_len:int=1) -> tuple[bytes, any] | None:
+    def ping(self, signal:int, expected_response_len:int=1) -> tuple[bytes, any]:
         try:
             signal_bytes = signal.to_bytes(signal, byteorder="little")
             self.SOCK_UDP.sendto(signal_bytes, self.EVA_CON)
@@ -61,19 +62,18 @@ class eva_connection:
             self.SOCK_UDP.close()
             exit()
     
-    def get_packets(self) -> list[bytes]:
+    def get_packets(self) -> list[bytes] | None:
         packets = list()
         
-        if not self.receving_packets: 
-            eva_response = self.ping(DATA_REQUEST, ESP_MAX_BYTES)
-            if not eva_response:
-                print("Não ta respondendo")
-                return None
-            self.num_packages = int.from_bytes(eva_response[0], byteorder="little")
-            print("NUMERO DE PKGS: " + str(self.num_packages))
-            self.receving_packets = True
-
+        packets_response = self.ping(DATA_REQUEST, ESP_MAX_BYTES)
+        if not packets_response:
+            print("Não ta respondendo")
+            return None
+        self.num_packages = int.from_bytes(packets_response[0], byteorder="little")
+        print(f"NUMERO DE PKGS: {self.num_packages}")
         
+        self.receving_packets = True
+
         for counter in range(self.num_packages):
             eva_response = self.ping(RECEIVING_DATA, ESP_MAX_BYTES)
             if not eva_response:
@@ -93,11 +93,12 @@ def main():
     eva_con.connect()
     print("Conexão com EVA estabelecida")
     packets = eva_con.get_packets()
-    print("Quantidade de pacotes: " + str(len(packets)))
+    if packets:
+        print(f"Quantidade de pacotes: {len(packets)}")
     print()
     print(packets)
     
-    for _ in range(5):
+    for _ in range(3):
         eva_con.get_packets()
     
 if __name__ == "__main__":

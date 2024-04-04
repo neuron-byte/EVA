@@ -20,10 +20,10 @@ void Zinu::checkIncomingSignal() {
         case SEND_DATA_REQUEST:
             this->state = DATA_REQUEST;
             break;
-        case RECEIVING_DATA:
-            this->state = SENDING_DATA;
         case RESET:
             this->state = RESETING;
+            break;
+        default:
             break;
     }
 }
@@ -35,7 +35,6 @@ void Zinu::sendResponseSignal(byte signal)
     this->socket.endPacket();
 }
 
-//8bits like
 void Zinu::sendData(uint8_t* bufferData, size_t bufferSize) {
     // Conta e enviar pacotes
     this->countPackets(bufferSize);
@@ -47,35 +46,40 @@ void Zinu::sendData(uint8_t* bufferData, size_t bufferSize) {
     int local_buffer_size;
     bool cond1;
     bool cond2; 
-    bool cond3; 
+    bool cond3;
+
     do {
-        Serial.println("Iniciando envio");
+        Serial.println("\nIniciando envio");
         local_buffer_size = packetCounter == this->num_packages ? this->last_package_bytes : MAX_BYTES_UDP;
         Serial.print("Tamanho do buffer local: ");
         Serial.println(local_buffer_size);
         uint8_t localbuffer[local_buffer_size];
-        // Carregando buffer
+        // Loading buffer
         for (size_t i = 0; i < local_buffer_size; i++) {
             localbuffer[i] = bufferData[base + i];
         }
         base += MAX_BYTES_UDP;
         Serial.print("base: ");
         Serial.println(base);
-        packetCounter++;
         Serial.print("Contador de pacotes: ");
         Serial.println(packetCounter);
+
+        // Aguardando sinal de "RECEIVING_DATA"
+        do {
+            this->readIncomingSignal();
+        } while (*this->signalbuffer == NO_PING);
 
         this->socket.beginPacket(this->socket.remoteIP(), this->socket.remotePort());
         this->socket.write(localbuffer, sizeof(localbuffer));
         this->socket.endPacket();
+        packetCounter++;
         Serial.println("Um pacote enviado");
         
-        this->readIncomingSignal();
         Serial.print("Sinal do buffer: ");
-        Serial.println(this->signalbuffer[0]);
-        cond1 = this->signalbuffer[0] == RECEIVING_DATA;
-        cond2 = this->signalbuffer[0] == SEND_DATA_REQUEST;
-        cond3 = packetCounter <= this->num_packages;
+        Serial.println(*this->signalbuffer);
+        cond1 = *this->signalbuffer == RECEIVING_DATA;
+        cond2 = *this->signalbuffer == SEND_DATA_REQUEST;
+        cond3 = packetCounter < this->num_packages;
         Serial.print("Condição 1: ");
         Serial.println(cond1);
         Serial.print("Condição 2: ");
@@ -83,7 +87,7 @@ void Zinu::sendData(uint8_t* bufferData, size_t bufferSize) {
         Serial.print("Condição 3: ");
         Serial.println(cond3);
 
-    } while ((cond1 || cond2) && cond3);
+    } while (cond1 && cond3);
     Serial.println("Enviado. Zerando num_pacotes");
     this->num_packages = 0;
 }
@@ -110,12 +114,11 @@ void Zinu::countPackets(size_t numBytes) {
     this->last_package_bytes = numBytes % MAX_BYTES_UDP;
 }
 
-// Nào tá recebendo o ping certo
 void Zinu::readIncomingSignal() {
-    this->signalbuffer[0] = 0;
-    if (this->socket.parsePacket()) {
+    this->signalbuffer[0] = NO_PING;
+    if (this->socket.parsePacket() > 0) {
         this->socket.read(this->signalbuffer, sizeof(this->signalbuffer));
-        Serial.print("atualizando ping para: ");
+        Serial.print("Atualizando ping para: ");
         Serial.println(*this->signalbuffer);
     }
 } 

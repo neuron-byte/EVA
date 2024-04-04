@@ -18,6 +18,7 @@ const int HANDSHAKE = 1;
 const int SEND_DATA_REQUEST = 2;
 const int RECEIVING_DATA = 3;
 const int RESET = 4;
+// ===== =====
 
 class Zinu {
     public:

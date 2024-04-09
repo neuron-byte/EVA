@@ -2,7 +2,6 @@ import socket
 import errno
 
 ESP_MAX_BYTES = 1460
-
 HANDSHAKE:int = 1
 DATA_REQUEST:int = 2
 RECEIVING_DATA:int = 3
@@ -10,6 +9,7 @@ RESET_DATA:int = 4
 
 class eva_connection:
     def __init__(self, eva_ip:str, eva_port:int) -> None:
+        self.cont = 0
         self.EVA_CON:socket._Address = eva_ip, eva_port
         
         self.SOCK_UDP:socket.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -68,6 +68,7 @@ class eva_connection:
         packets_response = self.ping(DATA_REQUEST, ESP_MAX_BYTES)
         if not packets_response:
             print("Não ta respondendo")
+            print(self.cont)
             return None
         self.num_packages = int.from_bytes(packets_response[0], byteorder="little")
         print(f"NUMERO DE PKGS: {self.num_packages}")
@@ -95,11 +96,12 @@ def main():
     packets = eva_con.get_packets()
     if packets:
         print(f"Quantidade de pacotes: {len(packets)}")
-    print()
-    print(packets)
+    #print()
+    #print(packets)
     
-    for _ in range(3):
+    for _ in range(24):
         eva_con.get_packets()
+        eva_con.cont = eva_con.cont+1
     
 if __name__ == "__main__":
     main()

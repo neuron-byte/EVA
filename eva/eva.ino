@@ -13,12 +13,12 @@
 IPAddress apIP(192,168,4,1);
 IPAddress subnet(255,255,255,0);
 
+
 Zinu *zinu;
 camera_fb_t* frameBuffer = NULL;
 
 void wifi_ap_setup() {
   Serial.println("Configurando ponto de acesso.");
-
   if (!WiFi.softAP(SSID, PASSWORD)) {
     Serial.println("Criação do Soft AP falhou.");
     delay(1000);
@@ -56,6 +56,10 @@ void setup() {
       delay(500);
   }
   Serial.println("Camera iniciada.");
+  setupLedFlash();
+  flashLight(255);
+  delay(500);
+  flashLight(0);
   zinu = new Zinu(UDP_PORT);
 
   while (!zinu->connected) {
@@ -75,12 +79,11 @@ void loop() {
       Serial.println("Iniciando camera.");
       Serial.println("Camera iniciada.");
       Serial.println("Capturando Frame");
-      if(frameBuffer == NULL){
-        Serial.println("Ê BRASIL!");
-      }
+      flashLight(255);
       frameBuffer = esp_camera_fb_get();
       if(!frameBuffer){
         Serial.println("Error: Falha ao capturar frame");
+        flashLight(0);
         break;
       }
       zinu->state = SENDING_DATA;
@@ -88,7 +91,7 @@ void loop() {
     case SENDING_DATA:
       Serial.println("Enviando dados");
       blink_led(LED_BUILTIN);
-      zinu->sendData(frameBuffer->buf, 153600);
+      zinu->sendData(frameBuffer->buf, frameBuffer->len);
       if(frameBuffer){
         esp_camera_fb_return(frameBuffer);
         frameBuffer = NULL;

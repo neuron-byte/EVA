@@ -1,5 +1,8 @@
 #include "esp_camera.h"
 #include "camera_index.h"
+#include "esp32-hal-ledc.h"
+
+#define LED_LEDC_CHANNEL 2
 
 #define PWDN_GPIO_NUM     32
 #define RESET_GPIO_NUM    -1
@@ -41,13 +44,22 @@ static camera_config_t config = {
         .xclk_freq_hz   = 20000000,
         .ledc_timer     = LEDC_TIMER_0,
         .ledc_channel   = LEDC_CHANNEL_0,
-        .pixel_format   = PIXFORMAT_RGB565,
+        .pixel_format   = PIXFORMAT_JPEG,
         .frame_size     = FRAMESIZE_QVGA,
         .jpeg_quality   = 10,
         .fb_count       = 2,
         .grab_mode      = CAMERA_GRAB_LATEST
     };
 
+bool setupLedFlash(){
+    if(!ledcSetup(LED_LEDC_CHANNEL, 5000, 8)) return false;
+    ledcAttachPin(LED_GPIO_NUM, LED_LEDC_CHANNEL);
+    return true;
+}
+
+void flashLight(int intensity){
+    ledcWrite(LED_LEDC_CHANNEL, intensity);
+}
 
 esp_err_t init_camera(){
     return esp_camera_init(&config);

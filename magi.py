@@ -4,7 +4,7 @@ import cv2
 
 def main():
     eva_con = eva_connection("192.168.4.1", 12345)
-      
+    eva_con.connect() 
     while True:
         data_packets = eva_con.get_packets()
         if data_packets:

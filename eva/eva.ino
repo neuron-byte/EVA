@@ -1,8 +1,7 @@
 #include <WiFi.h>
-#include "cam_output.h"
 #include "src/zinu/Zinu.h"
-#include "src/cam/OV7670.h"
-
+#include "src/esp_32_cam/setupCam.h"
+#include "esp_camera.h"
 #ifndef LED_BUILTIN
 #define LED_BUILTIN 2 
 #endif
@@ -14,12 +13,12 @@
 IPAddress apIP(192,168,4,1);
 IPAddress subnet(255,255,255,0);
 
+
 Zinu *zinu;
-OV7670 *camera;
+camera_fb_t* frameBuffer = NULL;
 
 void wifi_ap_setup() {
   Serial.println("Configurando ponto de acesso.");
-
   if (!WiFi.softAP(SSID, PASSWORD)) {
     Serial.println("Criação do Soft AP falhou.");
     delay(1000);
@@ -49,8 +48,18 @@ void setup() {
   Serial.begin(115200);
 
   wifi_ap_setup();
-
-  camera = new OV7670(OV7670::Mode::QQVGA_RGB565, SIOD, SIOC, VSYNC, HREF, XCLK, PCLK, D0, D1, D2, D3, D4, D5, D6, D7);
+  //camera_loop();
+  esp_err_t ret = init_camera();
+  while(ret != ESP_OK){
+      Serial.println("Camera falhou ao iniciar");
+      ret = init_camera();
+      delay(500);
+  }
+  Serial.println("Camera iniciada.");
+  setupLedFlash();
+  flashLight(255);
+  delay(500);
+  flashLight(0);
   zinu = new Zinu(UDP_PORT);
 
   while (!zinu->connected) {
@@ -58,20 +67,35 @@ void setup() {
   zinu->handShake();
   delay(1000);
   }
+  Serial.println("EVA foi conectado ao MAGI.");
 }
+
 
 void loop() {
   zinu->checkIncomingSignal();
-
   switch (zinu->state) {
     case DATA_REQUEST:
       blink_led(LED_BUILTIN);
-      camera->oneFrame();
+      Serial.println("Iniciando camera.");
+      Serial.println("Camera iniciada.");
+      Serial.println("Capturando Frame");
+      flashLight(255);
+      frameBuffer = esp_camera_fb_get();
+      if(!frameBuffer){
+        Serial.println("Error: Falha ao capturar frame");
+        flashLight(0);
+        break;
+      }
       zinu->state = SENDING_DATA;
       break;
     case SENDING_DATA:
+      Serial.println("Enviando dados");
       blink_led(LED_BUILTIN);
-      zinu->sendData(camera->frame, (camera->xres * camera->yres * 2));
+      zinu->sendData(frameBuffer->buf, frameBuffer->len);
+      if(frameBuffer){
+        esp_camera_fb_return(frameBuffer);
+        frameBuffer = NULL;
+      }
       zinu->state = STAND_BY;
       break;
     case RESETING:

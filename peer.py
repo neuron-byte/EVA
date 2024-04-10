@@ -1,5 +1,6 @@
 import socket
 import errno
+from tqdm import tqdm
 
 ESP_MAX_BYTES = 1460
 HANDSHAKE:int = 1
@@ -75,17 +76,16 @@ class eva_connection:
         
         self.receving_packets = True
 
-        for counter in range(self.num_packages):
+        for _ in tqdm(range(self.num_packages), desc='Receiving Packages', unit='package'):
             eva_response = self.ping(RECEIVING_DATA, ESP_MAX_BYTES)
             if not eva_response:
                 packets = list()
                 break    
             packets.append(eva_response[0])
-            print(f"{counter+1}/{self.num_packages}")
+            #print(f"{counter+1}/{self.num_packages}")
             
         
         self.receving_packets = False
-        # frame_bytes = self.convert_to_gray(frame_bytes)
         return packets
 
 def main():
@@ -93,15 +93,11 @@ def main():
     eva_con = eva_connection("192.168.4.1", 12345)
     eva_con.connect()
     print("Conexão com EVA estabelecida")
-    packets = eva_con.get_packets()
-    if packets:
-        print(f"Quantidade de pacotes: {len(packets)}")
-    #print()
-    #print(packets)
-    
+    eva_con.get_packets()
     for _ in range(24):
         eva_con.get_packets()
         eva_con.cont = eva_con.cont+1
-    
+''' 
 if __name__ == "__main__":
     main()
+'''

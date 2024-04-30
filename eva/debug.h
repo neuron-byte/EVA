@@ -3,6 +3,7 @@
 #define DEBUG
 #define WARNING
 #define INFO
+#define ERROR
 
 #ifdef DEBUG
 #define debugf(in, format) Serial.printf(("[debug] " in), format)
@@ -28,4 +29,12 @@
 #else
 #define infoln(in)
 #define infof(in, format)
+#endif
+
+#ifdef ERROR
+#define errorln(in) Serial.println(("[error] " in))
+#define errorf(in, format) Serial.printf(("[error] " in), format)
+#else
+#define errorln(in)
+#define errorf(in, format)
 #endif

@@ -25,11 +25,11 @@ class eva_connection:
     def connect(self) -> bool:
         if self.sucess_connection == True: return
 
-        self.sucess_connection = True if self.ping(HANDSHAKE) else False
+        self.sucess_connection = True if self.__ping(HANDSHAKE) else False
         self.SOCK_UDP.settimeout(2.5)
         return self.sucess_connection
-    
-    def ping(self, signal:int, expected_response_len:int=1) -> tuple[bytes, any]:
+        
+    def __ping(self, signal:int, expected_response_len:int=1) -> tuple[bytes, any]:
         try:
             signal_bytes = signal.to_bytes(signal, byteorder="little")
             self.SOCK_UDP.sendto(signal_bytes, self.EVA_CON)
@@ -65,7 +65,7 @@ class eva_connection:
     def get_packets(self) -> list[bytes] | None:
         packets = list()
         
-        packets_response = self.ping(DATA_REQUEST, ESP_MAX_BYTES)
+        packets_response = self.__ping(DATA_REQUEST, ESP_MAX_BYTES)
         if not packets_response:
             print("Não ta respondendo")
             return None
@@ -75,7 +75,7 @@ class eva_connection:
         self.receving_packets = True
 
         for counter in range(self.num_packages):
-            eva_response = self.ping(RECEIVING_DATA, ESP_MAX_BYTES)
+            eva_response = self.__ping(RECEIVING_DATA, ESP_MAX_BYTES)
             if not eva_response:
                 packets = list()
                 break    
@@ -86,6 +86,9 @@ class eva_connection:
         self.receving_packets = False
         # frame_bytes = self.convert_to_gray(frame_bytes)
         return packets
+    
+    def send_signal(self, signal:int) -> None:
+        self.__ping(signal)
 
 def main():
     print("Iniciando conexão")

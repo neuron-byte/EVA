@@ -1,3 +1,4 @@
+#pragma once
 #include <WiFiUdp.h>
 
 #ifndef DATAPACK_SIZE
@@ -27,8 +28,9 @@ class Zinu {
 
         Zinu(int port);
         bool handShake();
-        void checkIncomingSignal();
+        byte checkIncomingSignal();
         void sendData(uint8_t* bufferData, size_t bufferSize);
+        void sendSignal(byte signal);
         
     private:
         WiFiUDP socket;

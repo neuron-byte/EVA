@@ -1,9 +1,9 @@
 #pragma once
 
-#define DEBUG
-#define WARNING
-#define INFO
-#define ERROR
+// #define DEBUG
+// #define WARNING
+// #define INFO
+// #define ERROR
 
 #ifdef DEBUG
 #define debugf(in, format) Serial.printf(("[debug] " in), format)

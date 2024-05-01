@@ -13,7 +13,7 @@ class eva_connection:
         self.EVA_CON:socket._Address = eva_ip, eva_port
         
         self.sock:socket.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.sock.settimeout(20)
+        self.sock.settimeout(10)
         
         self.lost_packages:int = 0
         self.num_packages:int = 0

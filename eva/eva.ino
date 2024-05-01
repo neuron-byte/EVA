@@ -95,25 +95,25 @@ void loop() {
     case MOVE_FORWARD:
       reset_move();
       move_forward();
-      delay(500);
+      delay(600);
       reset_move();
       break;
     case MOVE_BACK:
       reset_move();
       move_back();
-      delay(500);
+      delay(600);
       reset_move();
       break;
     case TURN_RIGHT:
       reset_move();
       turn_right();
-      delay(500);
+      delay(400);
       reset_move();
       break;
     case TURN_LEFT:
       reset_move();
       turn_left();
-      delay(500);
+      delay(400);
       reset_move();
       break;
     case STOP:

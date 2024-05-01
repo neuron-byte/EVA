@@ -23,8 +23,6 @@ byte Zinu::checkIncomingSignal() {
         case RESET:
             this->state = RESETING;
             break;
-        default:
-            break;
     }
     return *this->signalbuffer;
 }
@@ -111,5 +109,6 @@ void Zinu::readIncomingSignal() {
     this->signalbuffer[0] = NO_PING;
     if (this->socket.parsePacket() > 0) {
         this->socket.read(this->signalbuffer, sizeof(this->signalbuffer));
+        debugf("signalbuffer: %d\n", this->signalbuffer[0]);
     }
 } 

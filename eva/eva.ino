@@ -40,14 +40,14 @@ void setup() {
   Serial.begin(115200);
 
   wifi_ap_setup();
-  //camera_loop();
+  
   esp_err_t ret = init_camera();
   while(ret != ESP_OK){
       infoln("Camera falhou ao iniciar");
       ret = init_camera();
       delay(500);
   }
-  Serial.println("Camera iniciada.");
+  infoln("Camera iniciada.");
   setupLedFlash();
   flashLight(255);
   delay(500);
@@ -93,40 +93,34 @@ void loop() {
 
   switch (magi_signal) {
     case MOVE_FORWARD:
-      zinu->sendSignal(RECIVED);
       reset_move();
       move_forward();
       delay(500);
       reset_move();
       break;
     case MOVE_BACK:
-      zinu->sendSignal(RECIVED);
       reset_move();
       move_back();
       delay(500);
       reset_move();
       break;
     case TURN_RIGHT:
-      zinu->sendSignal(RECIVED);
       reset_move();
       turn_right();
       delay(500);
       reset_move();
       break;
     case TURN_LEFT:
-      zinu->sendSignal(RECIVED);
       reset_move();
       turn_left();
       delay(500);
       reset_move();
       break;
     case STOP:
-      zinu->sendSignal(RECIVED);
       reset_move();
       move_stop();
-      delay(500);
+      delay(50);
       reset_move();
       break;
   }
-  magi_signal = 0;
 }
